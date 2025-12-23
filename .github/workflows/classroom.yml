@@ -1,0 +1,108 @@
+name: Autograding Tests
+on:
+  - push
+  - repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  run-autograding-tests:
+    name: Оценивание заданий
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    
+    # ============ ЗАПУСК ВСЕХ ТЕСТОВ ============
+    - name: Run All Autograding Tests
+      id: run_tests
+      run: |
+        python3 tools/run_all_tests.py
+
+    # ============ АГРЕГАЦИЯ РЕЗУЛЬТАТОВ ============
+    - name: Aggregate All Task Results
+      id: aggregate
+      run: |
+        python3 tools/aggregate_all.py
+
+    # ============ СОХРАНЕНИЕ ВСЕХ РЕЗУЛЬТАТОВ ============
+    - name: Save Results for Classroom & Summary
+      uses: actions/upload-artifact@v4
+      with:
+        name: autograding-results
+        path: |
+          task*_aggregated.txt
+          results/
+        retention-days: 1
+
+    # ============ ГЕНЕРАЦИЯ ИТОГОВОГО ОТЧЁТА ДЛЯ СТУДЕНТА ============
+    - name: ✅ Generate Final Summary (visible in Actions tab)
+      if: always()
+      run: |
+        python3 tools/report_summary.py --generate-summary
+
+
+  # JOB 2: ОТПРАВКА В GITHUB CLASSROOM (только для учителя)
+  report-to-classroom:
+    name: Отправка результатов в GitHub Classroom
+    runs-on: ubuntu-latest
+    needs: run-autograding-tests
+    if: always()  # Отправляем даже если студент не решил всё
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download Autograding Results
+      uses: actions/download-artifact@v4
+      with:
+        name: autograding-results
+        path: ./
+
+    - name: Prepare Outputs for Classroom
+      id: extract_results
+      run: |
+        python3 tools/report_summary.py --extract --output-env
+
+    - name: 📤 Report to GitHub Classroom
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        TASK_01_RESULTS: "${{ steps.extract_results.outputs.task_01_aggregated }}"
+        TASK_02_RESULTS: "${{ steps.extract_results.outputs.task_02_aggregated }}"
+        TASK_01_REFACTOR_RESULTS: "${{ steps.extract_results.outputs.task_01_refactor_aggregated }}"
+        TASK_02_REFACTOR_RESULTS: "${{ steps.extract_results.outputs.task_02_refactor_aggregated }}"
+        # 👆 При добавлении задач — добавь сюда новые строки: TASK_04_RESULTS: ...
+      with:
+        runners: "task_01,task_02,task_01_refactor,task_02_refactor"  # 👈 и сюда: task_04
+
+
+  # JOB 3: АНАЛИЗ КАЧЕСТВА КОДА
+  code-quality-analysis:
+    name: Анализ качества кода
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install linters
+      run: |
+        pip install pylint flake8 ruff -q
+
+    - name: Run code analysis
+      run: |
+        python3 tools/code_analysis.py >> $GITHUB_STEP_SUMMARY

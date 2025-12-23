@@ -1,0 +1,78 @@
+{
+  "tasks": [
+    {
+      "id": "task_01",
+      "name": "Задача 1: Переименование переменной",
+      "file": "task_01.py",
+      "max_score": 50,
+      "tests": [
+        {
+          "name": "Тест с текстом",
+          "input": "hi",
+          "expected_output": "hihi",
+          "comparison_method": "exact",
+          "max_score": 25
+        },
+        {
+          "name": "Тест с числом",
+          "input": "5",
+          "expected_output": "55",
+          "comparison_method": "exact",
+          "max_score": 25
+        }
+      ]
+    },
+    {
+      "id": "task_02",
+      "name": "Задача 2: Вынос дублирующегося кода",
+      "file": "task_02.py",
+      "max_score": 50,
+      "tests": [
+        {
+          "name": "Тест с радиусами 1 и 2",
+          "input": "1.0\n2.0",
+          "expected_output": "3.14\n12.56",
+          "comparison_method": "exact",
+          "max_score": 25
+        },
+        {
+          "name": "Тест с радиусами 0 и 3",
+          "input": "0\n3",
+          "expected_output": "0.00\n28.26",
+          "comparison_method": "exact",
+          "max_score": 25
+        }
+      ]
+    },
+    {
+      "id": "task_01_refactor",
+      "name": "Рефакторинг 1: Качество кода (переименование)",
+      "file": "task_01.py",
+      "max_score": 20,
+      "tests": [
+        {
+          "name": "Проверка структуры кода",
+          "input": "",
+          "expected_output": "OK",
+          "comparison_method": "exact",
+          "max_score": 20
+        }
+      ]
+    },
+    {
+      "id": "task_02_refactor",
+      "name": "Рефакторинг 2: Качество кода (функция)",
+      "file": "task_02.py",
+      "max_score": 20,
+      "tests": [
+        {
+          "name": "Проверка структуры кода",
+          "input": "",
+          "expected_output": "OK",
+          "comparison_method": "exact",
+          "max_score": 20
+        }
+      ]
+    }
+  ]
+}
